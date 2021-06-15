@@ -13,7 +13,7 @@ library(stm)  # High-performance topic modelling
 library(syuzhet) # a benchmark for sentiment detection
 library(sentimentr) # a benchmark for sentiment detection
 library(doMC) # to speed up some code with parallel processing
-
+library(spacyr) # to parse grammar
 
 # source("dataload.R") # to trim yelp data from raw JSON files... don't run, it's slow! (but if you're curious.... )
 
@@ -35,7 +35,7 @@ library(doMC) # to speed up some code with parallel processing
 # saveRDS(rev_small,file="data/rev_small.RDS")
 # saveRDS(bus_small,file="data/bus_small.RDS")
 
-# Let's load it from memory
+# Let's load the small data from memory
 rev_small<-readRDS("data/rev_small.RDS")
 bus_small<-readRDS("data/bus_small.RDS")
 
