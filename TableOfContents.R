@@ -21,6 +21,23 @@ library(doMC) # to speed up some code with parallel processing
 # busses<-readRDS("data/businessset.RDS") # 35,086 restaurants from Yelp
 # reviews<-bind_rows(readRDS("data/reviewset1.RDS"), # 584,137 restaurant reviews
 #                    readRDS("data/reviewset2.RDS")) # it's big! had to split in two for github
+#
+# There are way too many examples for us... Let's trim it down
+# This is the only city I've lived in from the data (no London or Toronto, alas!)
+# We'll also only look at mid-range restaurants (2/4 on the price range scale)
+#
+# bus_small<-busses %>%
+#   filter(city=="Cambridge" & RestaurantsPriceRange2==2)
+# rev_small <- reviews %>%
+#   filter(business_id%in%bus_tiny$business_id)
+
+# Save data as we go
+# saveRDS(rev_small,file="data/rev_small.RDS")
+# saveRDS(bus_small,file="data/bus_small.RDS")
+
+# Let's load it from memory
+rev_small<-readRDS("data/rev_small.RDS")
+bus_small<-readRDS("data/bus_small.RDS")
 
 
 source("basicNLP.R")      # ngrams, model training, dictionaries

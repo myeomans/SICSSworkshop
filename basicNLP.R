@@ -22,24 +22,6 @@ ngramTokens(testDox,ngrams=1:3)
 
 ######### New data - restaurant reviews
 
-# There are way too many examples for us... Let's trim it down
-# This is the only city I've lived in from the data (no London or Toronto, alas!)
-# bus_small<-busses %>%
-#   filter(city=="Cambridge")
-# rev_small <- reviews %>%
-#   filter(business_id%in%bus_small$business_id)
-
-# Save data as we go to save time (always)
-# saveRDS(rev_small,file="data/rev_small.RDS")
-# saveRDS(bus_small,file="data/bus_small.RDS")
-
-# Let's load it from memory
-rev_small<-readRDS("data/rev_small.RDS")
-bus_small<-readRDS("data/bus_small.RDS")
-
-# Get rid of the big dataset for now, to save resources
-#rm(busses,reviews)
-
 # The weird value in the second argument is called a "regular expression"
 # Here it's just counting consecutive sets of letters i.e. words
 rev_small$word_count<-str_count(rev_small$text,"[[:alpha:]]+")
@@ -77,24 +59,34 @@ dfm<-ngramTokens(rev_small$text,ngrams=1:3)
 
 dim(dfm)
 
+
+# Here we build a model with our feature set
+#
 # First, randomly split into training and testing data
-train_split=sample(1:nrow(rev_small),round(nrow(rev_small)/2))
+#train_split=sample(1:nrow(rev_small),round(nrow(rev_small)/2))
+# Put training data into LASSO model 
+# lasso_mod<-glmnet::cv.glmnet(x=dfm[train_split,],
+#                        y=rev_small$stars[train_split])
+# 
+# # You can save models, just like data!
+# # Highly recommended if the code is slow.
+# saveRDS(lasso_mod,file="data/modLASSO.RDS")
+#saveRDS(train_split,file="data/train_split.RDS")
 
-# Put training data into LASSO model
+# Let's load these from memory instead
+lasso_mod=readRDS("data/modLASSO.RDS")
+train_split=readRDS("data/train_split.RDS")
 
-mod<-glmnet::cv.glmnet(x=dfm[train_split,],
-                       y=rev_small$stars[train_split],
-                       parallel=T)
 
-# Did our model beat baseline? yes! big dip in out-of sample error
+# Did our model find anything? yes! big dip in out-of sample error
 # Also note counts along top of graph - our model uses hundreds of features
-plot(mod)
+plot(lasso_mod)
 
 
 ################ Evaluating accuracy of the model
 
 # fit the trained model to the test data
-test_predict<-predict(mod,newx = dfm[-train_split,])
+test_predict<-predict(lasso_mod,newx = dfm[-train_split,])
 
 # Distribution of predictions seems reasonable (some out-of-range extremes, though)
 hist(test_predict)
@@ -121,19 +113,19 @@ sentiment_two<-syuzhet::get_sentiment(rev_small$text[-train_split],method="bing"
 cor.test(sentiment_two,test_actual)
 
 
-# uses sentence boundaries and handles negations... a bit smarter
+# this package uses sentence boundaries and handles negations... a bit smarter
 sentiment_three<-sentimentr::sentiment(rev_small$text[-train_split]) %>%
   group_by(element_id) %>%
   summarize(sent=mean(sentiment))
 
-# better still!
+# better still! But not as good as our in-domain model
 cor.test(sentiment_three$sent,test_actual)
 
 
 ############ Interpreting the model with lists and plots
 
 # Extract coefficients of model into a table
-scoreSet<-coef(mod) %>%
+scoreSet<-coef(lasso_mod) %>%
   as.matrix() %>%
   data.frame() %>%
   rownames_to_column(var = "ngram") %>%
@@ -172,13 +164,12 @@ scoreSet %>%
   geom_point() +
   geom_label_repel(max.overlaps = 30,force = 6)+  
   scale_y_continuous(trans="log2",
-                     breaks=c(.01,.05,.1,.2),
-                     labels = paste0(c(1,5,10,20),"%"))+
+                     breaks=c(.01,.05,.1,.2,.5,1,2,5))+
   scale_x_continuous(breaks=seq(-.4,.4,.2),
                      labels = seq(-.4,.4,.2),
-                     limits = c(-.4,.4))+
+                     limits = c(-.5,.5))+
   theme_bw() +
-  labs(x="Coefficient in Model",y="Frequency in Advice Datasets")+
+  labs(x="Coefficient in Model",y="Uses per Review")+
   theme(legend.position = "none",
         axis.title=element_text(size=20),
         axis.text=element_text(size=16))
