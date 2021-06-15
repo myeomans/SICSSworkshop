@@ -22,27 +22,33 @@ ngramTokens(testDox,ngrams=1:3)
 
 ######### New data - restaurant reviews
 
+# There are way too many examples for us... Let's trim it down
+# This is the only city I've lived in from the data (no London or Toronto, alas!)
+# bus_small<-busses %>%
+#   filter(city=="Cambridge")
+# rev_small <- reviews %>%
+#   filter(business_id%in%bus_small$business_id)
+
+# Save data as we go to save time (always)
+# saveRDS(rev_small,file="data/rev_small.RDS")
+# saveRDS(bus_small,file="data/bus_small.RDS")
+
+# Let's load it from memory
+rev_small<-readRDS("data/rev_small.RDS")
+bus_small<-readRDS("data/bus_small.RDS")
+
+# Get rid of the big dataset for now, to save resources
+#rm(busses,reviews)
+
 # The weird value in the second argument is called a "regular expression"
 # Here it's just counting consecutive sets of letters i.e. words
-reviews$word_count<-str_count(reviews$text,"[[:alpha:]]+")
+rev_small$word_count<-str_count(rev_small$text,"[[:alpha:]]+")
 
 # Distribution of word counts
-reviews %>%
+rev_small %>%
   ggplot(aes(x=word_count)) +
   geom_histogram()
 
-# There are way too many examples for us... Let's trim it down
-# This is the only city I've lived in from the data (no London or Toronto, alas!)
-bus_small<-busses %>%
-  filter(city=="Cambridge")
-rev_small <- reviews %>%
-  filter(business_id%in%bus_small$business_id)
-
-# Save data as we go to save time (always)
-saveRDS(rev_small,file="data/rev_small.RDS")
-saveRDS(bus_small,file="data/bus_small.RDS")
-# Get rid of the big dataset for now, to save resources
-rm(busses,reviews)
 
 # Calculate a 1-gram feature count matrix for the review data
 dfm<-ngramTokens(rev_small$text,ngrams=1)
@@ -59,9 +65,9 @@ sort(colMeans(dfm))[1:20]
 dfmAll<-ngramTokens(rev_small$text[1:1000],ngrams=1,sparse = 1)
 
 # many words only occur once! Not very useful....
-sort(colSums(dfmAll))[1:20]
+sort(colSums(dfmAll)[colSums(dfmAll)==1])
 
-# don't do this. get rid of rare words
+# don't do this. let's get rid of rare words
 rm(dfmAll)
 
 ######## Ok, let's build a model to predict sentiment!
@@ -75,8 +81,6 @@ dim(dfm)
 train_split=sample(1:nrow(rev_small),round(nrow(rev_small)/2))
 
 # Put training data into LASSO model
-
-doMC::registerDoMC(4) # this allows for parallel processing - even with multiple cores, this code is slow!
 
 mod<-glmnet::cv.glmnet(x=dfm[train_split,],
                        y=rev_small$stars[train_split],

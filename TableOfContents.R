@@ -16,9 +16,11 @@ library(doMC) # to speed up some code with parallel processing
 
 
 # source("dataload.R") # to trim yelp data from raw JSON files... don't run, it's slow! (but if you're curious.... )
-busses<-readRDS("data/businessset.RDS") # 35,086 restaurants from Yelp
-reviews<-bind_rows(readRDS("data/reviewset1.RDS"), # 584,137 restaurant reviews
-                   readRDS("data/reviewset2.RDS")) # it's big! had to split in two for github
+
+# These are the full datasets - don't load them for now! But they will come in handy later
+# busses<-readRDS("data/businessset.RDS") # 35,086 restaurants from Yelp
+# reviews<-bind_rows(readRDS("data/reviewset1.RDS"), # 584,137 restaurant reviews
+#                    readRDS("data/reviewset2.RDS")) # it's big! had to split in two for github
 
 
 source("basicNLP.R")      # ngrams, model training, dictionaries
