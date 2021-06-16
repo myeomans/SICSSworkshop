@@ -34,6 +34,7 @@ library(spacyr) # to parse grammar
 # Save data as we go
 # saveRDS(rev_small,file="data/rev_small.RDS")
 # saveRDS(bus_small,file="data/bus_small.RDS")
+########################################################
 
 # Let's load the small data from memory
 rev_small<-readRDS("data/rev_small.RDS")
@@ -43,7 +44,7 @@ bus_small<-readRDS("data/bus_small.RDS")
 source("basicNLP.R")      # ngrams, model training, dictionaries
 source("structuralNLP.R") # topic models, vectors
 
-source("politeness.R") # politeness example
+source("receptiveness.R") # receptiveness example
 
 ##################### Notes for Project Ideas 
 #
