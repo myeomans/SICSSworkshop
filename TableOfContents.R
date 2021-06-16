@@ -15,6 +15,10 @@ library(sentimentr) # a benchmark for sentiment detection
 library(doMC) # to speed up some code with parallel processing
 library(spacyr) # to parse grammar
 
+
+########################################################
+# Data wrangling.... ignore for now
+########################################################
 # source("dataload.R") # to trim yelp data from raw JSON files... don't run, it's slow! (but if you're curious.... )
 
 # These are the full datasets - don't load them for now! But they will come in handy later
@@ -24,7 +28,7 @@ library(spacyr) # to parse grammar
 #
 # There are way too many examples for us... Let's trim it down
 # This is the only city I've lived in from the data (no London or Toronto, alas!)
-# We'll also only look at mid-range restaurants (2/4 on the price range scale)
+# We'll also only look at restaurants that are 2/4 on the price range (second cheapest!)
 #
 # bus_small<-busses %>%
 #   filter(city=="Cambridge" & RestaurantsPriceRange2==2)
