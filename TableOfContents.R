@@ -22,10 +22,10 @@ library(spacyr) # to parse grammar
 # source("dataload.R") # to trim yelp data from raw JSON files... don't run, it's slow! (but if you're curious.... )
 
 # These are the full datasets - don't load them for now! But they will come in handy later
-# busses<-readRDS("data/businessset.RDS") # 35,086 restaurants from Yelp
-# reviews<-bind_rows(readRDS("data/reviewset1.RDS"), # 584,137 restaurant reviews
-#                    readRDS("data/reviewset2.RDS")) # it's big! had to split in two for github
-#
+busses<-readRDS("data/businessset.RDS") # 35,086 restaurants from Yelp
+reviews<-bind_rows(readRDS("data/reviewset1.RDS"), # 584,137 restaurant reviews
+                   readRDS("data/reviewset2.RDS")) # it's big! had to split in two for github
+
 # There are way too many examples for us... Let's trim it down
 # This is the only city I've lived in from the data (no London or Toronto, alas!)
 # We'll also only look at restaurants that are 2/4 on the price range (second cheapest!)
