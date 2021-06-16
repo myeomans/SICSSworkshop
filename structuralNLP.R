@@ -1,28 +1,73 @@
 
 ############### Topic Models
 
-
-# dfm<-as.dfm(ngramTokens(rev_small$text,ngrams=1,stop.words = FALSE))
-# 
-# topicMod<-stm(dfm,K=30)
+# First we use stm to estimate the topic model
 
 # Note - you can save models as RDS files, too!
-# saveRDS(topicMod,file="data/topicMod.RDS")
+# 
+# dfm<-as.dfm(ngramTokens(rev_small$text,ngrams=1,stop.words = FALSE))
+# # #
+#  topicMod20<-stm(dfm,K=20)
+# #
+#  topicMod30<-stm(dfm,K=30)
+# 
+#  saveRDS(topicMod20,file="data/topicMod20.RDS")
+#  saveRDS(topicMod30,file="data/topicMod30.RDS")
 
+# Two models - 20 and 30 topics (K is *very* hard to choose)
 
-topicMod<-readRDS("data/topicMod.RDS")
+topicMod20<-readRDS("data/topicMod20.RDS")
+#topicMod30<-readRDS("data/topicMod30.RDS")
 
+######## Let's focus on the 20 topic model for now...
 
+# Most common topics, and mst common words from each topic
+plot(topicMod20,type="summary",n = 7,xlim = c(0,.3)) 
 
+# We can also grab more words per topic
+labelTopics(topicMod20)
+
+# Estimate effects of topics and star rating
+ee<-estimateEffect(1:20~stars,topicMod20,
+                   meta= rev_small[,c("stars","user_male")])
+
+# The default plotting function is bad... Here's another version
+bind_rows(lapply(summary(ee)$tables,function(x) x[2,1:2])) %>%
+  mutate(topic=factor(paste("Topic",1:20),ordered=T,
+                      levels=paste("Topic",1:20)),
+         se_u=Estimate+`Std. Error`,
+         se_l=Estimate-`Std. Error`) %>%
+  ggplot(aes(x=topic,y=Estimate,ymin=se_l,ymax=se_u)) +
+  geom_point() + 
+  geom_errorbar() +
+  coord_flip() +
+  geom_hline(yintercept = 0)+
+  theme_bw()
+
+# Which topics correlate with one another?
+plot(topicCorr(topicMod20))
 
 
 ############### Word Vectors
 
+# The real word vector files are ~ 6GB - too big! This is a smaller version,
+# containing only the 50,000 most common words
+vecSmall<-readRDS("data/vecSmall.RDS")
 
+# one column with words, and 300 with vector projections (uninterpretable!)
+head(vecSmall[,1:20])
 
+# Some of my own home-brewed functions for vector calculation
+source("vectorFunctions.R")
 
+# Calculating similarity using bag of words doesn't know the difference between sad and happy!
+bowSimCalc(x=c("I am very sad","I am very happy"),
+           y="I am thrilled")
 
-
+# However, processing the text as dense vectors allows the meaning to emerge. 
+vecSimCalc(x=c("I am very sad","I am very happy"),
+           y="I am thrilled",
+           vecfile=vecSmall)
 
 
 ############### Politeness
@@ -69,6 +114,8 @@ politenessPlot(rev_polite_av %>%
   scale_y_continuous(name = "Feature Count per Average-length text",
                      breaks= c(.1,.5,1,2,5,10),
                      trans = "sqrt")
+
+ggsave("genderreview.png")
 
 # Men also give lower reviews... interesting!
 rev_small %>%
